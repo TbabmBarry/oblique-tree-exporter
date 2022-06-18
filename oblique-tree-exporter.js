@@ -32,7 +32,7 @@
 
 
 class Node {
-    constructor(sv) {
+    constructor(sv = null) {
         this.split = sv.slice();
         this.subTrainingSet = []
         this.left = null
@@ -49,9 +49,8 @@ class BivariateDecisionTree {
     constructor(builder) {
         this.trainingSet = builder.trainingSet;
         this.nodeTreePath = builder.nodeTreePath;
-        this.decisionNodes = builder.decisionNodes.map(function (arr) {
-            return arr.slice();
-        });
+        this.decisionNodes = builder.decisionNodes.map(arr => arr.slice());
+        this.numFeature = this.decisionNodes[0].length - 1;
         this.splitDistributions = builder.splitDistributions;
         this.root = this.build();
     }
@@ -86,6 +85,38 @@ class BivariateDecisionTree {
      */
     export() {
 
+    }
+
+    /**
+     * Use the bivariate decision tree (pointed to root) to 
+     * classify training data points.
+     * @date 2022-06-18
+     */
+    classify() {
+        this.trainingSet.forEach((point, idx) => {
+            let currNode = this.root, sum = 0;
+            while (currNode != null) {
+                sum = currNode.split[numFeature];
+                sum += point.map((val, i) => val*currNode.split[i]).reduce((a, b) => a+b);
+                if (sum < 0) {
+                    if (currNode.left != null) {
+                        currNode = currNode.left;
+                        // TODO: store this point into sub training set at current decision node
+                    } else {
+                        // TODO: think about what to do with leaf nodes
+                        break;
+                    }
+                } else {
+                    if (currNode.right != null) {
+                        currNode = currNode.right;
+                        // TODO: store this point into sub training set at current decision node
+                    } else {
+                        // TODO: think about what to do with leaf nodes
+                        break;
+                    }
+                }
+            }
+        })
     }
 }
 
