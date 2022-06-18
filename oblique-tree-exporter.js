@@ -1,4 +1,3 @@
-import _ from 'lodash';
 
 /**
  * Example input: builder
@@ -7,12 +6,34 @@ import _ from 'lodash';
  * l Hyperplane: Left = [0,0,49], Right = [115,0,3], Oblique Split: -3.413128 x[1] + 1.000000 x[5] + 0.388552 = 0
  * lr Hyperplane: Left = [1,0,3], Right = [114,0,0], Oblique Split: -1.185092 x[1] + 1.000000 x[5] + 0.296273 = 0
  * lrl Hyperplane: Left = [0,0,3], Right = [1,0,0], Oblique Split: 1.000000 x[2] + -0.145013 = 0
+ * builder = {
+ *  trainingSet: [
+ *      {},
+ *      {},
+ *      {},
+ *      ...
+ *  ],
+ *  nodeTreePath: [root, l, lr, lrl],
+ *  decisionNodes: [
+ *      [0, -0.699623, 0, 1.000000, 0, -0.464679],
+ *      [-3.413128, 0, 0, 0, 1.000000, 0.388552],
+ *      [-1.185092, 0, 0, 0, 1.000000, 0.296273],
+ *      [0, 1.000000, 0, 0, 0, -0.145013]
+ *  ],
+ *  splitDistributions: [
+ *      { left: [115,0,52], right: [0,99,0] },
+ *      { left: [0,0,49], right: [115,0,3] },
+ *      { left: [1,0,3], right: [114,0,0] },
+ *      { left: [0,0,3], right: [1,0,0] },
+ *  ]
+ * }
+ * 
  */
 
 
 class Node {
-    constructor(element) {
-        this.split = element.split
+    constructor(sv) {
+        this.split = sv.slice();
         this.subTrainingSet = []
         this.left = null
         this.right = null
@@ -28,7 +49,9 @@ class BivariateDecisionTree {
     constructor(builder) {
         this.trainingSet = builder.trainingSet;
         this.nodeTreePath = builder.nodeTreePath;
-        this.decisionNodes = builder.decisionNodes;
+        this.decisionNodes = builder.decisionNodes.map(function (arr) {
+            return arr.slice();
+        });
         this.splitDistributions = builder.splitDistributions;
         this.root = this.build();
     }
@@ -39,7 +62,22 @@ class BivariateDecisionTree {
      * @date 2022-06-18
      */
     build() {
-
+        let rootNode, currNode;
+        this.nodeTreePath.forEach((pathStr, nodeIdx) => {
+            if (pathStr == "root") {
+                rootNode = new Node(this.decisionNodes[nodeIdx]);
+            } else {
+                let pathArr = pathStr.split(""), i = 0;
+                const k = pathArr.length;
+                currNode = rootNode;
+                while (i < k-1) {
+                    pathArr[i] == "l" ? currNode = currNode.left : currNode = currNode.right;
+                    i++;
+                }
+                pathArr[i] == "l" ? currNode.left = new Node(this.decisionNodes[nodeIdx]) : currNode.right = new Node(this.decisionNodes[nodeIdx]);
+            }
+        })
+        return rootNode;
     }
 
     /**
@@ -50,3 +88,5 @@ class BivariateDecisionTree {
 
     }
 }
+
+// export default BivariateDecisionTree;
